@@ -9,63 +9,73 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 
-# タイトル
-st.title("積立投資シミュレーション")
+# 初期設定
+st.set_page_config(page_title="投資シミュレーション", layout="centered")
 
-# -------------------------------
-# 📌 前提条件を表示
-# -------------------------------
-st.markdown("### 📊 投資前提")
-st.markdown("""
-- 株式：リターン **5.5%**, リスク **23%**
-- 債券：リターン **0.9%**, リスク **3%**
-- 株と債券の相関係数：**-0.3**
-""")
+st.title("📈 投資シミュレーションアプリ")
 
-# -------------------------------
-# 🔧 ユーザー入力
-# -------------------------------
-st.sidebar.header("シミュレーション設定")
+# ----------------------------
+# 🧾 前提条件の表示
+# ----------------------------
+with st.expander("📌 このシミュレーションの前提条件"):
+    st.markdown("""
+    - **株式の期待リターン**：5.5%
+    - **株式のリスク（年率）**：23%
+    - **債券の期待リターン**：0.9%
+    - **債券のリスク（年率）**：3%
+    - **株式と債券の相関**：-0.3
+    - **インフレ率**：2%
+    """)
 
-start_age = st.sidebar.slider("現在の年齢", 20, 60, 30)
-monthly_contribution = st.sidebar.number_input("毎月の投資額（万円）", min_value=1, max_value=30, value=5)
-equity_ratio = st.sidebar.slider("株式の比率（％）", 0, 100, 50)
-retirement_age = 65
+# ----------------------------
+# 🎯 入力項目
+# ----------------------------
+st.markdown("### 🔧 シミュレーション設定")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    start_age = st.number_input("開始年齢", min_value=20, max_value=60, value=30)
+with col2:
+    monthly_contribution = st.number_input("月額積立額（万円）", min_value=1, max_value=100, value=5)
+with col3:
+    equity_ratio = st.slider("株式比率（%）", 0, 100, 50)
 
 # 実行ボタン
-run_simulation = st.button("💡 シミュレーションを実行")
+if st.button("🚀 シミュレーションを実行"):
 
-if run_simulation:
-    # -------------------------------
-    # 投資シミュレーション本体
-    # -------------------------------
-
-    # パラメータ設定
+    # ----------------------------
+    # 📊 パラメータ設定
+    # ----------------------------
     equity_return = 0.055
     bond_return = 0.009
     inflation = 0.02
-    equity_vol = 0.23
-    bond_vol = 0.03
-    correlation = -0.3
 
-    returnYearly = np.array([equity_return, bond_return])
-    volatilityYearly = np.array([equity_vol, bond_vol])
-    corrYearly = np.array([[1, correlation], [correlation, 1]])
+    real_equity_return = equity_return - inflation
+    real_bond_return = bond_return - inflation
+
+    returnYearly = np.array([real_equity_return, real_bond_return])
+    volatilityYearly = np.array([0.23, 0.03])
+    correlation = -0.3
+    corrYearly = np.array([[1, correlation],
+                           [correlation, 1]])
 
     # 月次変換
     monthly_returns = returnYearly / 12
     monthly_volatility = volatilityYearly / np.sqrt(12)
     cov_matrix = np.diag(monthly_volatility) @ corrYearly @ np.diag(monthly_volatility)
 
-    # 投資条件
-    weights = np.array([equity_ratio / 100, 1 - equity_ratio / 100])
+    # 投資設定
+    weights = np.array([equity_ratio / 100, 1 - (equity_ratio / 100)])
+    retirement_age = 65
     n_simulations = 1000
     n_years = retirement_age - start_age
     n_months = n_years * 12
     ages = np.arange(start_age, retirement_age + 1)
+    years = np.arange(2025 + (start_age - 30), 2025 + (retirement_age - 30) + 1)
 
-    # シミュレーション実行
-    all_trajectories = np.zeros((n_simulations, n_years + 1))
+    all_trajectories = np.zeros((n_simulations, n_years + 1))  # 年単位
+
     for i in range(n_simulations):
         portfolio_value = 0
         values_by_year = [portfolio_value]
@@ -78,40 +88,55 @@ if run_simulation:
                 values_by_year.append(portfolio_value)
         all_trajectories[i, :] = values_by_year
 
-    # パーセンタイル抽出
+    # ----------------------------
+    # 📉 パーセンタイル計算
+    # ----------------------------
     final_values = all_trajectories[:, -1]
-    idx_25 = np.abs(final_values - np.percentile(final_values, 25)).argmin()
-    idx_50 = np.abs(final_values - np.percentile(final_values, 50)).argmin()
-    idx_75 = np.abs(final_values - np.percentile(final_values, 75)).argmin()
+    p25_val = np.percentile(final_values, 25)
+    p50_val = np.percentile(final_values, 50)
+    p75_val = np.percentile(final_values, 75)
+
+    idx_25 = np.abs(final_values - p25_val).argmin()
+    idx_50 = np.abs(final_values - p50_val).argmin()
+    idx_75 = np.abs(final_values - p75_val).argmin()
 
     trajectory_25 = all_trajectories[idx_25]
     trajectory_50 = all_trajectories[idx_50]
     trajectory_75 = all_trajectories[idx_75]
 
-    # -------------------------------
-    # 📈 グラフ描画
-    # -------------------------------
-    st.subheader("📈 投資シミュレーション結果")
-
+    # ----------------------------
+    # 💹 グラフ描画
+    # ----------------------------
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    # 全シミュレーション（グレー）
     for i in range(n_simulations):
-        ax.plot(ages, all_trajectories[i], color='gray', alpha=0.05)
+        ax.plot(ages, all_trajectories[i], color='gray', alpha=0.03)
 
-    # 25%・50%・75%のシナリオ
-    ax.plot(ages, trajectory_75, color='blue', linewidth=2, linestyle='dashed', label='75th Percentile')
-    ax.plot(ages, trajectory_50, color='red', linewidth=2, label='Median (50th)')
-    ax.plot(ages, trajectory_25, color='blue', linewidth=2, linestyle='dashed', label='25th Percentile')
+    ax.plot(ages, trajectory_75, color='blue', linestyle='dashed', linewidth=2, label='75th Percentile')
+    ax.plot(ages, trajectory_50, color='red', linewidth=2, label='50th Percentile')
+    ax.plot(ages, trajectory_25, color='blue', linestyle='dashed', linewidth=2, label='25th Percentile')
 
-    # 貯金のみのライン
+    # 貯金ケース
     saving_trajectory = monthly_contribution * 12 * (ages - start_age)
     ax.plot(ages, saving_trajectory, color='green', linewidth=2, label='Saving Only')
 
-    ax.set_title("積立投資シミュレーション（退職まで）")
-    ax.set_xlabel("年齢")
-    ax.set_ylabel("資産額（万円）")
+    # 年齢と西暦を両方表示
+    ax.set_xticks(ages)
+    ax.set_xticklabels([f"{age}\n({year})" for age, year in zip(ages, years)], rotation=45)
+
+    ax.set_xlabel("年齢（西暦）")
+    ax.set_ylabel("万円（インフレ調整済）")
+    ax.set_title("定年までの投資シミュレーション")
     ax.legend()
     ax.grid(True)
-
     st.pyplot(fig)
+
+    # ----------------------------
+    # 🧾 結果数値の表示
+    # ----------------------------
+    st.markdown("### 💰 最終積立額（定年時）")
+    st.metric("75パーセンタイル", f"{trajectory_75[-1]:,.0f} 万円")
+    st.metric("50パーセンタイル（中央値）", f"{trajectory_50[-1]:,.0f} 万円")
+    st.metric("25パーセンタイル", f"{trajectory_25[-1]:,.0f} 万円")
+    st.metric("貯金のみの場合", f"{saving_trajectory[-1]:,.0f} 万円")
+
