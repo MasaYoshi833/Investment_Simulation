@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # 初期設定
 st.set_page_config(page_title="資産運用シミュレーション", layout="centered")
 
-st.title("📈 資産運用シミュレーション")
+st.title("資産運用シミュレーション（デモ）")
 
 # ----------------------------
 # 🧾 前提条件の表示
@@ -107,7 +107,7 @@ if st.button("シミュレーションを実行",type = "primary"):
     # ----------------------------
     # 💹 グラフ描画
     # ----------------------------
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(12, 9))
 
     for i in range(n_simulations):
         ax.plot(ages, all_trajectories[i], color='gray', alpha=0.03)
@@ -127,8 +127,8 @@ if st.button("シミュレーションを実行",type = "primary"):
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels, fontsize=10)
     
-    # Y軸の上限を80パーセンタイルで設定
-    y_max = np.percentile(final_values, 80)
+    # Y軸の上限を85パーセンタイルで設定
+    y_max = np.percentile(final_values, 85)
     ax.set_ylim(0, y_max * 1.05)  # 少し余白
     
     ax.set_xlabel("Age(Year)")
