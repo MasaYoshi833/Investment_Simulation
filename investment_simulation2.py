@@ -12,19 +12,19 @@ import matplotlib.pyplot as plt
 # 初期設定
 st.set_page_config(page_title="投資シミュレーション", layout="centered")
 
-st.title("📈 投資シミュレーションアプリ")
+st.title("📈 資産運用シミュレーション（デモ）")
 
 # ----------------------------
 # 🧾 前提条件の表示
 # ----------------------------
-with st.expander("📌 このシミュレーションの前提条件"):
+with st.expander("📌 前提条件"):
     st.markdown("""
-    - **株式の期待リターン**：5.5%
-    - **株式のリスク（年率）**：23%
-    - **債券の期待リターン**：0.9%
-    - **債券のリスク（年率）**：3%
-    - **株式と債券の相関**：-0.3
-    - **インフレ率**：2%
+    - *株式の期待リターン*：5.5%
+    - *株式のリスク（年率）*：23%
+    - *債券の期待リターン*：0.9%
+    - *債券のリスク（年率）*：3%
+    - *株式と債券の相関*：-0.3
+    - *インフレ率*：2%
     """)
 
 # ----------------------------
@@ -42,7 +42,7 @@ with col3:
     equity_ratio = st.slider("株式比率（%）", 0, 100, 50)
 
 # 実行ボタン
-if st.button("🚀 シミュレーションを実行"):
+if st.button("シミュレーションを実行"):
 
     # ----------------------------
     # 📊 パラメータ設定
@@ -124,9 +124,9 @@ if st.button("🚀 シミュレーションを実行"):
     ax.set_xticks(ages)
     ax.set_xticklabels([f"{age}\n({year})" for age, year in zip(ages, years)], rotation=45)
 
-    ax.set_xlabel("年齢（西暦）")
-    ax.set_ylabel("万円（インフレ調整済）")
-    ax.set_title("定年までの投資シミュレーション")
+    ax.set_xlabel("Age(Year)")
+    ax.set_ylabel("Amount (10,000 Yen)")
+    ax.set_title("Investment Simulation")
     ax.legend()
     ax.grid(True)
     st.pyplot(fig)
