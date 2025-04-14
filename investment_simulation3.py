@@ -30,7 +30,7 @@ with st.expander("📌 前提条件"):
 # ----------------------------
 # 🎯 入力項目
 # ----------------------------
-st.subheader("### 🔧 初期設定")
+st.subheader("🔧初期設定")
 
 start_age = st.slider("現在の年齢", min_value=20, max_value=60, value=30)
 monthly_contribution = st.slider("月額積立額（万円）", min_value=1, max_value=30, value=5)
@@ -119,10 +119,9 @@ if st.button("シミュレーションを実行",type = "primary"):
     ax.plot(ages, saving_trajectory, color='green', linewidth=2, label='Saving Only')
 
     # 年齢と西暦を両方表示
-    xtick_indices = list(range(0, len(ages), 5))  # 5年ごと
+    xtick_indices = [i for i, age in enumerate(ages) if age % 5 == 0 or age == start_age]
     xticks = ages[xtick_indices]
     xticklabels = [f"{age}\n({year})" for age, year in zip(ages[xtick_indices], years[xtick_indices])]
-    ax.set_xticklabels([f"{age}\n({year})" if age % 5 == 0 or age == start_age else "" for age, year in zip(ages, years)])
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels, fontsize=10)
     
@@ -144,5 +143,3 @@ if st.button("シミュレーションを実行",type = "primary"):
     st.metric("50パーセンタイル（中央値）", f"{trajectory_50[-1]:,.0f} 万円")
     st.metric("25パーセンタイル", f"{trajectory_25[-1]:,.0f} 万円")
     st.metric("貯金のみの場合", f"{saving_trajectory[-1]:,.0f} 万円")
-
-    st.caption("※ 毎月1000回のモンテカルロシミュレーションに基づく試算結果です。")
