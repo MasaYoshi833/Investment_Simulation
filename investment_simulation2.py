@@ -30,16 +30,11 @@ with st.expander("📌 前提条件"):
 # ----------------------------
 # 🎯 入力項目
 # ----------------------------
-st.markdown("### 🔧 シミュレーション設定")
+st.subheader("### 🔧 初期設定")
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    start_age = st.slider("開始年齢", min_value=20, max_value=60, value=30)
-with col2:
-    monthly_contribution = st.slider("月額積立額（万円）", min_value=1, max_value=30, value=5)
-with col3:
-    equity_ratio = st.slider("株式比率(残りは債券)（%）", 0, 100, 50)
+start_age = st.slider("現在の年齢", min_value=20, max_value=60, value=30)
+monthly_contribution = st.slider("月額積立額（万円）", min_value=1, max_value=30, value=5)
+equity_ratio = st.slider("株式比率(残りは債券)（%）", 0, 100, 50)
 
 # 実行ボタン
 if st.button("シミュレーションを実行",type = "primary"):
@@ -47,6 +42,14 @@ if st.button("シミュレーションを実行",type = "primary"):
     # ----------------------------
     # 📊 パラメータ設定
     # ----------------------------
+    retirement_age = 65
+    start_year = 2025
+    end_age = retirement_age
+    n_years = end_age - start_age
+    n_months = n_years * 12
+    ages = np.arange(start_age, end_age + 1)
+    years = np.arange(start_year, start_year + n_years + 1)
+    
     equity_return = 0.055
     bond_return = 0.009
     inflation = 0.02
@@ -67,12 +70,7 @@ if st.button("シミュレーションを実行",type = "primary"):
 
     # 投資設定
     weights = np.array([equity_ratio / 100, 1 - (equity_ratio / 100)])
-    retirement_age = 65
     n_simulations = 1000
-    n_years = retirement_age - start_age
-    n_months = n_years * 12
-    ages = np.arange(start_age, retirement_age + 1)
-    years = np.arange(2025 + (start_age - 30), 2025 + (retirement_age - 30) + 1)
 
     all_trajectories = np.zeros((n_simulations, n_years + 1))  # 年単位
 
@@ -124,6 +122,7 @@ if st.button("シミュレーションを実行",type = "primary"):
     xtick_indices = list(range(0, len(ages), 5))  # 5年ごと
     xticks = ages[xtick_indices]
     xticklabels = [f"{age}\n({year})" for age, year in zip(ages[xtick_indices], years[xtick_indices])]
+    ax.set_xticklabels([f"{age}\n({year})" if age % 5 == 0 or age == start_age else "" for age, year in zip(ages, years)])
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels, fontsize=10)
     
@@ -146,3 +145,4 @@ if st.button("シミュレーションを実行",type = "primary"):
     st.metric("25パーセンタイル", f"{trajectory_25[-1]:,.0f} 万円")
     st.metric("貯金のみの場合", f"{saving_trajectory[-1]:,.0f} 万円")
 
+    st.caption("※ 毎月1000回のモンテカルロシミュレーションに基づく試算結果です。")
