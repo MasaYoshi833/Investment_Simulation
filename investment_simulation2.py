@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # 初期設定
-st.set_page_config(page_title="投資シミュレーション", layout="centered")
+st.set_page_config(page_title="資産運用シミュレーション", layout="centered")
 
-st.title("📈 資産運用シミュレーション（デモ）")
+st.title("📈 資産運用シミュレーション")
 
 # ----------------------------
 # 🧾 前提条件の表示
@@ -35,14 +35,14 @@ st.markdown("### 🔧 シミュレーション設定")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    start_age = st.number_input("開始年齢", min_value=20, max_value=60, value=30)
+    start_age = st.slider("開始年齢", min_value=20, max_value=60, value=30)
 with col2:
-    monthly_contribution = st.number_input("月額積立額（万円）", min_value=1, max_value=100, value=5)
+    monthly_contribution = st.slider("月額積立額（万円）", min_value=1, max_value=30, value=5)
 with col3:
-    equity_ratio = st.slider("株式比率（%）", 0, 100, 50)
+    equity_ratio = st.slider("株式比率(残りは債券)（%）", 0, 100, 50)
 
 # 実行ボタン
-if st.button("シミュレーションを実行"):
+if st.button("シミュレーションを実行",type = "primary"):
 
     # ----------------------------
     # 📊 パラメータ設定
@@ -121,14 +121,20 @@ if st.button("シミュレーションを実行"):
     ax.plot(ages, saving_trajectory, color='green', linewidth=2, label='Saving Only')
 
     # 年齢と西暦を両方表示
-    ax.set_xticks(ages)
-    ax.set_xticklabels([f"{age}\n({year})" for age, year in zip(ages, years)], rotation=45)
-
+    xtick_indices = list(range(0, len(ages), 5))  # 5年ごと
+    xticks = ages[xtick_indices]
+    xticklabels = [f"{age}\n({year})" for age, year in zip(ages[xtick_indices], years[xtick_indices])]
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticklabels, fontsize=10)
+    
+    # Y軸の上限を80パーセンタイルで設定
+    y_max = np.percentile(final_values, 80)
+    ax.set_ylim(0, y_max * 1.05)  # 少し余白
+    
     ax.set_xlabel("Age(Year)")
     ax.set_ylabel("Amount (10,000 Yen)")
     ax.set_title("Investment Simulation")
     ax.legend()
-    ax.grid(True)
     st.pyplot(fig)
 
     # ----------------------------
