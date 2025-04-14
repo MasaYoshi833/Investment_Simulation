@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # 初期設定
 st.set_page_config(page_title="資産運用シミュレーション", layout="centered")
 
-st.title("資産運用シミュレーション（デモ）")
+st.title("資産運用シミュレーション")
 
 # ----------------------------
 # 🧾 前提条件の表示
@@ -51,8 +51,8 @@ if st.button("シミュレーションを実行",type = "primary"):
     bond_return = 0.009
     inflation = 0.02
 
-    real_equity_return = equity_return - inflation
-    real_bond_return = bond_return - inflation
+    real_equity_return = equity_return
+    real_bond_return = bond_return
 
     returnYearly = np.array([real_equity_return, real_bond_return])
     volatilityYearly = np.array([0.23, 0.03])
@@ -107,7 +107,7 @@ if st.button("シミュレーションを実行",type = "primary"):
     # ----------------------------
     # 💹 グラフ描画
     # ----------------------------
-    fig, ax = plt.subplots(figsize=(12, 9))
+    fig, ax = plt.subplots(figsize=(12, 8))
 
     for i in range(n_simulations):
         ax.plot(ages, all_trajectories[i], color='gray', alpha=0.03)
